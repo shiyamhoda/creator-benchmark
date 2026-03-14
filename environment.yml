@@ -1,0 +1,16 @@
+name: creator-benchmarker
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - google-api-python-client==2.118.0
+    - spacy==3.7.4
+    - pandas==2.2.1
+    - sqlalchemy==2.0.29
+    - plotly==5.20.0
+    - dash==2.16.1
+    - python-dotenv==1.0.1
+    - requests==2.31.0
