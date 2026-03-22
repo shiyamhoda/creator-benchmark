@@ -6,7 +6,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-
+from config import RAW_DATA_PATH
 # ── Setup ────────────────────────────────────────────────────────────────────
 
 load_dotenv()
@@ -18,9 +18,6 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-BASE_DIR      = Path(__file__).parent.parent
-RAW_DATA_PATH = BASE_DIR / "data" / "raw"
-RAW_DATA_PATH.mkdir(parents=True, exist_ok=True)
 
 # How many recent videos to fetch per channel
 VIDEOS_PER_CHANNEL = 10

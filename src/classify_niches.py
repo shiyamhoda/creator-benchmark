@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-
+from config import RAW_DATA_PATH
 import spacy
 
 # ── Setup ────────────────────────────────────────────────────────────────────
@@ -12,8 +12,7 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-BASE_DIR      = Path(__file__).parent.parent
-RAW_DATA_PATH = BASE_DIR / "data" / "raw"
+
 
 # Load spaCy English model
 nlp = spacy.load("en_core_web_sm")

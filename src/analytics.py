@@ -1,6 +1,7 @@
 import logging
-import os
+
 from pathlib import Path
+from config import DB_PATH
 
 import pandas as pd
 from sqlalchemy import create_engine, text
@@ -13,8 +14,7 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).parent.parent
-DB_PATH = Path(os.getenv("DB_PATH", str(BASE_DIR / "data" / "db" / "creator_benchmarker.db")))
+
 
 
 def get_engine():

@@ -1,6 +1,14 @@
 import sys
 from pathlib import Path
 
+# ── Add project root to path ──────────────────────────────────────────────────
+# Must happen before any project imports
+# config.py knows the root so we bootstrap from its location
+_SRC = Path(__file__).resolve().parent.parent / "src"
+sys.path.insert(0, str(_SRC.parent))   # adds project root
+sys.path.insert(0, str(_SRC))          # adds src/ for direct config import
+
+from src.config import DB_PATH
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -9,7 +17,9 @@ from dash.dash_table.Format import Format, Scheme
 
 # ── Path setup ────────────────────────────────────────────────────────────────
 # Allows dashboard/app.py to import from src/
-sys.path.append(str(Path(__file__).parent.parent))
+# Add project root to path so src/ modules can be imported
+PROJECT_ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.analytics import (
     get_engine,
