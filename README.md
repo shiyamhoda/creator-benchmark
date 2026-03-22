@@ -2,81 +2,143 @@
 
 An end-to-end data pipeline that pulls live YouTube channel data,
 auto-classifies creators into niches using NLP, stores everything
-in a SQL database, and surfaces insights in an interactive Plotly
-Dash dashboard.
+in a SQL database, and surfaces insights in an interactive dashboard.
 
-## Business problem
-No free tool exists to benchmark YouTube creator niches side by side
-with real data. This project solves that for agencies, brand managers,
-and aspiring creators.
+## Live demo
+👉 [creator-benchmarker.onrender.com](https://creator-benchmarker.onrender.com)
+
+> First load may take 30 seconds — Render free tier spins down after inactivity.
+
+---
+
+## What it does
+
+| Stage | Script | What happens |
+|---|---|---|
+| 1 | search_channels.py | Resolves 80 YouTube handles → channel IDs (1 API unit each) |
+| 2 | fetch_channels.py | Fetches subscriber count, views, video count per channel |
+| 2.5 | fetch_videos.py | Fetches last 10 videos per channel — views, likes, comments |
+| 3 | classify_niches.py | NLP classifies each channel into a niche from description text |
+| 4 | load_database.py | Loads all data into SQLite with a clean 3-table schema |
+| 5 | analytics.py | 8 SQL analytical queries powering the dashboard |
+| 6 | dashboard/app.py | 4-page Plotly Dash interactive dashboard |
+
+---
+
+## Dashboard pages
+
+### Page 1 — Niche Overview
+Side-by-side benchmarks across 8 niches.
+- Average subscribers, engagement rate, upload frequency
+- Normalised benchmark heatmap
+
+### Page 2 — Channel Deep-Dive
+Compare any channel against its niche peers.
+- Scatter plot: subscribers vs engagement rate
+- Filterable, sortable channel rankings table
+
+### Page 3 — Top Videos
+Best performing videos per niche by view count.
+- Niche filter dropdown
+- Top 5 videos with engagement stats
+
+### Page 4 — NLP Audit Trail
+Shows how the NLP classifier auto-assigned niches from raw text.
+- Accuracy gauge: 83%
+- Match vs mismatch breakdown by niche
+- Full classification table with confidence scores
+
+---
+
+## Key findings
+
+- **Beauty** has the highest engagement rate (7.11%) despite mid-table subscribers
+- **Gaming** leads on average subscribers (34.93M) but mid-table engagement
+- **Finance** has the lowest engagement (2.45%) — counterintuitive given passionate audiences
+- **Tech** uploads most frequently (8.2 videos/month) yet maintains 4% engagement
+- NLP classifier achieves **86% accuracy** auto-labelling niches from description text
+
+---
 
 ## Tech stack
+
 | Layer | Technology |
 |---|---|
 | Data source | YouTube Data API v3 |
 | Language | Python 3.11 |
-| NLP | spaCy |
+| NLP | spaCy en_core_web_sm |
 | Storage | SQLite via SQLAlchemy |
-| Analytics | Pandas + SQL |
+| Analytics | Pandas + raw SQL |
 | Dashboard | Plotly Dash |
-| Hosting | Render |
+| Deployment | Render.com |
 
-## Architecture
-```
-search_channels.py   →   fetch_channels.py   →   classify_niches.py
-handles → IDs            IDs → statistics        descriptions → niches
-      ↓                        ↓                        ↓
-channel_ids.json         channels_raw.json         SQLite database
-                                                         ↓
-                                                   analytics.py
-                                                         ↓
-                                                   Plotly Dashboard
-```
+---
 
-## Setup
+## Run it locally
 
 ### 1. Clone the repo
-    git clone https://github.com/yourusername/creator-benchmarker.git
-    cd creator-benchmarker
+```bash
+git clone https://github.com/yourusername/creator-benchmarker.git
+cd creator-benchmarker
+```
 
-### 2. Create and activate Conda environment
-    conda env create -f environment.yml
-    conda activate creator-benchmarker
+### 2. Create Conda environment
+```bash
+conda env create -f environment.yml
+conda activate creator-benchmarker
+```
 
 ### 3. Add your YouTube API key
-    cp .env.example .env
-    # Edit .env and add your YouTube Data API v3 key
+```bash
+cp .env.example .env
+# Edit .env and paste your YouTube Data API v3 key
+# Get a free key at https://console.cloud.google.com
+```
 
-### 4. Run the pipeline
-    python src/search_channels.py
-    python src/fetch_channels.py
-    python src/classify_niches.py
-    python src/load_database.py
-    python src/analytics.py
+### 4. Run the full pipeline
+```bash
+python src/search_channels.py
+python src/fetch_channels.py
+python src/fetch_videos.py
+python src/classify_niches.py
+python src/load_database.py
+```
 
 ### 5. Launch the dashboard
-    python dashboard/app.py
+```bash
+python dashboard/app.py
+# Open http://127.0.0.1:8050
+```
+
+---
 
 ## Project structure
-    creator-benchmarker/
-    ├── data/
-    │   ├── raw/          ← API responses (gitignored, regenerate with scripts)
-    │   └── db/           ← SQLite database (gitignored, regenerate with scripts)
-    ├── src/
-    │   ├── search_channels.py
-    │   ├── fetch_channels.py
-    │   ├── classify_niches.py
-    │   └── load_database.py
-    ├── dashboard/
-    │   └── app.py
-    ├── environment.yml
-    ├── requirements.txt
-    └── README.md
+```
+creator-benchmarker/
+├── data/
+│   ├── raw/              ← API responses (gitignored)
+│   └── db/               ← SQLite database (gitignored)
+├── src/
+│   ├── search_channels.py
+│   ├── fetch_channels.py
+│   ├── fetch_videos.py
+│   ├── classify_niches.py
+│   ├── load_database.py
+│   └── analytics.py
+├── dashboard/
+│   └── app.py
+├── environment.yml
+├── requirements.txt
+├── Procfile
+└── render.yaml
+```
 
-## Dashboard pages
-- **Niche Overview** — avg subscribers, engagement rate, upload frequency
-- **Channel Deep-Dive** — compare any channel vs its niche peers
-- **Growth Trajectory** — which niches are accelerating vs plateauing
+---
 
-## Live demo
-Coming soon
+## API quota usage
+| Script | Units used |
+|---|---|
+| search_channels.py | ~80 units |
+| fetch_channels.py | ~80 units |
+| fetch_videos.py | ~96 units |
+| **Total** | **~256 / 10,000 daily** |

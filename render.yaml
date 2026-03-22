@@ -3,7 +3,8 @@ services:
     name: creator-benchmarker
     runtime: python
     buildCommand: |
-      pip install -r requirements.txt
+      pip install --upgrade pip
+      pip install --prefer-binary -r requirements.txt
       python -m spacy download en_core_web_sm
       python src/search_channels.py
       python src/fetch_channels.py
