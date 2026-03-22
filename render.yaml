@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: creator-benchmarker
+    runtime: python
+    buildCommand: |
+      pip install -r requirements.txt
+      python -m spacy download en_core_web_sm
+      python src/search_channels.py
+      python src/fetch_channels.py
+      python src/fetch_videos.py
+      python src/classify_niches.py
+      python src/load_database.py
+    startCommand: gunicorn dashboard.app:server --workers 1 --threads 2 --timeout 120
+    envVars:
+      - key: YOUTUBE_API_KEY
+        sync: false
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1

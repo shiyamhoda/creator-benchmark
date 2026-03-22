@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -21,7 +22,7 @@ log = logging.getLogger(__name__)
 
 BASE_DIR      = Path(__file__).parent.parent
 RAW_DATA_PATH = BASE_DIR / "data" / "raw"
-DB_PATH       = BASE_DIR / "data" / "db" / "creator_benchmarker.db"
+DB_PATH = Path(os.getenv("DB_PATH", str(BASE_DIR / "data" / "db" / "creator_benchmarker.db")))
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 Base = declarative_base()

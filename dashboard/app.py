@@ -483,7 +483,10 @@ def update_top_videos(niche):
     return fig, filtered.to_dict("records")
 
 # ── Run ───────────────────────────────────────────────────────────────────────
+# Expose server for gunicorn
+server = app.server
+
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+    app.run(debug=False, port=8050)
 
 
