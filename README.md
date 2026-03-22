@@ -5,7 +5,7 @@ auto-classifies creators into niches using NLP, stores everything
 in a SQL database, and surfaces insights in an interactive dashboard.
 
 ## Live demo
-👉 [creator-benchmarker.onrender.com](https://creator-benchmarker.onrender.com)
+👉 [creator-benchmarker(https://creator-benchmark.onrender.com/)
 
 > First load may take 30 seconds — Render free tier spins down after inactivity.
 
@@ -15,6 +15,7 @@ in a SQL database, and surfaces insights in an interactive dashboard.
 
 | Stage | Script | What happens |
 |---|---|---|
+| 0 | run_pipeline.py | Orchestrates all pipeline stages — skips if database already exists |
 | 1 | search_channels.py | Resolves 80 YouTube handles → channel IDs (1 API unit each) |
 | 2 | fetch_channels.py | Fetches subscriber count, views, video count per channel |
 | 2.5 | fetch_videos.py | Fetches last 10 videos per channel — views, likes, comments |
@@ -97,11 +98,16 @@ cp .env.example .env
 
 ### 4. Run the full pipeline
 ```bash
-python src/search_channels.py
-python src/fetch_channels.py
-python src/fetch_videos.py
-python src/classify_niches.py
-python src/load_database.py
+python src/run_pipeline.py
+```
+
+This single command orchestrates all 5 pipeline stages automatically.
+It skips execution if the database already exists — saving API quota on reruns.
+
+To force a full refresh delete the database and rerun:
+```bash
+rm data/db/creator_benchmarker.db
+python src/run_pipeline.py
 ```
 
 ### 5. Launch the dashboard
@@ -111,7 +117,24 @@ python dashboard/app.py
 ```
 
 ---
+## Deployment
 
+Deployed on [Render.com](https://render.com) using a persistent disk.
+
+The start command runs `run_pipeline.py` which:
+1. Checks if the database already exists on the persistent disk
+2. If not — runs all 5 pipeline stages to build it from scratch
+3. If yes — skips the pipeline entirely and starts gunicorn immediately
+
+This means the first deploy takes ~3 minutes to build the database.
+Every subsequent restart starts in seconds.
+
+### Environment variables required on Render
+| Variable | Description |
+|---|---|
+| `YOUTUBE_API_KEY` | Your YouTube Data API v3 key from Google Cloud Console |
+
+---
 ## Project structure
 ```
 creator-benchmarker/
@@ -119,6 +142,8 @@ creator-benchmarker/
 │   ├── raw/              ← API responses (gitignored)
 │   └── db/               ← SQLite database (gitignored)
 ├── src/
+│   ├── config.py
+│   ├── run_pipeline.py
 │   ├── search_channels.py
 │   ├── fetch_channels.py
 │   ├── fetch_videos.py
@@ -142,3 +167,6 @@ creator-benchmarker/
 | fetch_channels.py | ~80 units |
 | fetch_videos.py | ~96 units |
 | **Total** | **~256 / 10,000 daily** |
+
+> `run_pipeline.py` checks if the database already exists before running.
+> Subsequent deploys and restarts consume zero API quota.
