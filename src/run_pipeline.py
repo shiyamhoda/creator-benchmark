@@ -23,13 +23,34 @@ SCRIPTS = [
     ("Stage 4 — load database",            "src/load_database.py"),
 ]
 
+SPACY_MODEL = "en_core_web_sm"
+SPACY_MODEL_PATH = Path(sys.executable).parent.parent / "lib" / "python3.11" / "site-packages" / SPACY_MODEL
+
 # ── Runner ────────────────────────────────────────────────────────────────────
+
+def ensure_spacy_model():
+    """Download spaCy model if not already installed."""
+    try:
+        import spacy
+        spacy.load(SPACY_MODEL)
+        log.info(f"spaCy model '{SPACY_MODEL}' already installed")
+    except OSError:
+        log.info(f"Downloading spaCy model '{SPACY_MODEL}'...")
+        result = subprocess.run(
+            [sys.executable, "-m", "spacy", "download", SPACY_MODEL],
+            capture_output=False,
+            text=True,
+        )
+        if result.returncode != 0:
+            log.error(f"Failed to download spaCy model '{SPACY_MODEL}'")
+            sys.exit(result.returncode)
+        log.info(f"spaCy model '{SPACY_MODEL}' downloaded successfully")
+
 
 def run_pipeline():
     """
     Run the full data pipeline only if the database does not exist.
-    Uses subprocess to call each script independently — avoids all
-    import naming issues and mirrors running scripts from the terminal.
+    Uses subprocess to call each script independently.
     """
     if DB_PATH.exists():
         log.info(f"Database already exists at {DB_PATH}")
@@ -38,12 +59,16 @@ def run_pipeline():
 
     log.info("Database not found — running full pipeline...")
 
+    # Stage 0 — ensure spaCy model is available
+    ensure_spacy_model()
+
+    # Stages 1 through 4
     for label, script_path in SCRIPTS:
         log.info(f"Running: {label} ({script_path})")
 
         result = subprocess.run(
             [sys.executable, script_path],
-            capture_output=False,   # stream output directly to terminal
+            capture_output=False,
             text=True,
         )
 
