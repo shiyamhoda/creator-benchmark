@@ -29,22 +29,18 @@ SPACY_MODEL_PATH = Path(sys.executable).parent.parent / "lib" / "python3.11" / "
 # ── Runner ────────────────────────────────────────────────────────────────────
 
 def ensure_spacy_model():
-    """Download spaCy model if not already installed."""
+    """Verify spaCy model is available."""
     try:
         import spacy
         spacy.load(SPACY_MODEL)
-        log.info(f"spaCy model '{SPACY_MODEL}' already installed")
+        log.info(f"spaCy model '{SPACY_MODEL}' is available")
     except OSError:
-        log.info(f"Downloading spaCy model '{SPACY_MODEL}'...")
-        result = subprocess.run(
-            [sys.executable, "-m", "spacy", "download", SPACY_MODEL],
-            capture_output=False,
-            text=True,
+        log.error(
+            f"spaCy model '{SPACY_MODEL}' not found. "
+            "It should have been installed via requirements.txt. "
+            "Check the build logs."
         )
-        if result.returncode != 0:
-            log.error(f"Failed to download spaCy model '{SPACY_MODEL}'")
-            sys.exit(result.returncode)
-        log.info(f"spaCy model '{SPACY_MODEL}' downloaded successfully")
+        sys.exit(1)
 
 
 def run_pipeline():
